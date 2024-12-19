@@ -3,8 +3,7 @@ from transformers import pipeline
 from dotenv import load_dotenv
 import os
 import time
-from datetime import datetime, timezone
-import random  # Ensure this import is included
+import random
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,8 +16,11 @@ client = tweepy.Client(
     access_token_secret=os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
 )
 
-# Initialize the GPT-2 model
+# Initialize the GPT-2 model for text generation
 generator = pipeline('text-generation', model='gpt2')
+
+# Initialize the BART model for text summarization
+summarizer = pipeline('summarization', model='facebook/bart-large-cnn')
 
 # Predefined prompts for energy facts
 prompts = [
@@ -50,49 +52,37 @@ def generate_fact():
         print(f"Error generating fact: {e}")
         return None
 
-def split_into_tweets(text, max_length=280):
-    """Split text into a list of tweets, each within the max_length"""
-    words = text.split()
-    tweets = []
-    current_tweet = ""
+def summarize_text(text, max_length=280):
+    """Summarize text to meet Twitter's character limit"""
+    if len(text) <= max_length:
+        return text
+    try:
+        summary = summarizer(text, max_length=int(max_length * 0.8), min_length=50, do_sample=False)
+        return summary[0]['summary_text']
+    except Exception as e:
+        print(f"Error summarizing text: {e}")
+        return text[:max_length]
 
-    for word in words:
-        if len(current_tweet) + len(word) + 1 > max_length:
-            tweets.append(current_tweet)
-            current_tweet = word
-        else:
-            if current_tweet:
-                current_tweet += " " + word
-            else:
-                current_tweet = word
-
-    if current_tweet:
-        tweets.append(current_tweet)
-
-    return tweets
-
-def post_tweet_thread():
-    """Post a thread of tweets with error handling"""
+def post_tweet():
+    """Post a tweet with error handling and summarization"""
     tweet_content = generate_fact()
     if tweet_content:
-        tweets = split_into_tweets(tweet_content)
+        summarized_content = summarize_text(tweet_content)
         try:
-            # Post the first tweet
-            response = client.create_tweet(text=tweets[0])
-            tweet_id = response.data["id"]
-            
-            # Post the rest of the tweets as replies to the first tweet
-            for tweet in tweets[1:]:
-                response = client.create_tweet(text=tweet, in_reply_to_tweet_id=tweet_id)
-                tweet_id = response.data["id"]
-            
-            print("\n✅ Thread posted successfully:")
-            print("-" * 50)
-            for tweet in tweets:
-                print(tweet)
-            print("-" * 50)
+            response = client.create_tweet(text=summarized_content)
+            if response.data:
+                print("\n✅ Tweet posted successfully:")
+                print("-" * 50)
+                print(summarized_content)
+                print("-" * 50)
+            else:
+                print("❌ No response data received from Twitter")
         except tweepy.TweepyException as e:
-            print(f"❌ Twitter API Error: {e}")
+            if e.response.status_code == 429:
+                print(f"❌ Twitter API Error: {e} - Rate limit exceeded. Waiting for 15 minutes before retrying.")
+                time.sleep(900)  # Wait for 15 minutes
+            else:
+                print(f"❌ Twitter API Error: {e}")
     else:
         print("❌ Could not generate tweet content")
 
@@ -104,7 +94,7 @@ def main():
 
     while True:
         try:
-            post_tweet_thread()
+            post_tweet()
             print("\n⏭️ Next tweet in 15 minutes...")
             time.sleep(900)  # 15 minutes
 
