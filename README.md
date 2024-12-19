@@ -30,29 +30,30 @@ This repository contains a Twitter bot that posts interesting and informative en
 ## Steps
 
 i. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+ ```bash
+ python -m venv venv
+ source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+```
 
 ii. Install the required packages: 
-```bash 
-pip install -r requirements.txt
-
+  ```bash 
+  pip install -r requirements.txt
+```
 iii. Create a .env file in the root of the project and add your Twitter API credentials:
-```eni
-TWITTER_API_KEY=your_api_key
-TWITTER_API_SECRET_KEY=your_api_secret_key
-TWITTER_ACCESS_TOKEN=your_access_token
-TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
-
+  ```eni
+  TWITTER_API_KEY=your_api_key
+  TWITTER_API_SECRET_KEY=your_api_secret_key
+  TWITTER_ACCESS_TOKEN=your_access_token
+  TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
+```
 
 ## Usage
 
 To start the bot, run:
-```bash
-python bot.py
-python bot1.py
-
+ ```bash
+ python bot.py
+ python bot1.py
+```
 
 ##Contributing
 
