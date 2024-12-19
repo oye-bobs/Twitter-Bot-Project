@@ -55,7 +55,7 @@ To start the bot, run:
  python bot1.py
 ```
 
-##Contributing
+## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request.
 
