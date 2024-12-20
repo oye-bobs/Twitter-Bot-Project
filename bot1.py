@@ -21,12 +21,12 @@ generator = pipeline('text-generation', model='gpt2')
 
 # Predefined prompts for energy facts
 prompts = [
-    "Energy fact about Solar energy summarised in 150 words ",
-  
-    #"Energy fact: Wind power",
-    #"Energy fact: Renewable energy",
-    #"Energy fact: Clean energy",
-    #"Energy fact: Sustainable energy" 
+    "Energy fact: Solar Inverters",
+    "Energy fact: Solar Batteries",
+    "Energy fact: Renewable energy",
+    "Energy fact: Clean energy",
+    "Energy fact: Sustainable energy",
+    "Energy fact: Solar Energy"
 ]
 
 def generate_fact():
