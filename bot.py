@@ -2,8 +2,10 @@ import tweepy
 from dotenv import load_dotenv
 import os
 import time
-from datetime import datetime, timezone
 import random
+import schedule
+from datetime import datetime, timedelta
+import pytz
 
 # Load environment variables from .env file
 load_dotenv()
@@ -15,9 +17,6 @@ client = tweepy.Client(
     access_token=os.getenv('TWITTER_ACCESS_TOKEN'),
     access_token_secret=os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
 )
-
-# Configuration
-INTERVAL = 900  # 15 minutes in seconds
 
 # Predefined facts
 facts = [
@@ -69,25 +68,25 @@ def post_tweet():
     else:
         print("❌ Could not generate tweet content")
 
-def main():
-    """Main function to run the bot"""
+def schedule_tweets():
+    """Schedule tweets at specified times"""
+    # Set timezone to West African Time
+    wat = pytz.timezone('Africa/Lagos')
+
+    # Schedule tweets at specified times
+    schedule.every().day.at("09:00").do(post_tweet).tag('scheduled-tweet')
+    schedule.every().day.at("12:00").do(post_tweet).tag('scheduled-tweet')
+    schedule.every().day.at("15:00").do(post_tweet).tag('scheduled-tweet')
+    schedule.every().day.at("18:00").do(post_tweet).tag('scheduled-tweet')
+    schedule.every().day.at("21:00").do(post_tweet).tag('scheduled-tweet')
+
     print(f"🤖 Bot Started")
-    print(f"⏱️ Posting interval: {INTERVAL} seconds (15 minutes)")
+    print(f"⏱️ Scheduled times: 9 AM, 12 PM, 3 PM, 6 PM, 9 PM (WAT)")
     print("-" * 50)
 
     while True:
-        try:
-            post_tweet()
-            print("\n⏭️ Next tweet in 15 minutes...")
-            time.sleep(INTERVAL)
-
-        except KeyboardInterrupt:
-            print("\n🛑 Bot stopped by user")
-            break
-        except Exception as e:
-            print(f"❌ Unexpected error: {e}")
-            print("⏳ Waiting 60 seconds before retrying...")
-            time.sleep(60)
+        schedule.run_pending()
+        time.sleep(1)  # Check every second for pending tasks
 
 if __name__ == "__main__":
-    main()
+    schedule_tweets()
